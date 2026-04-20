@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>SBTI 人格测试</title>
+<title>灵魂解码 · 人格测试</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -224,6 +224,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+.disclaimer{padding:20px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8;border-top:1px solid rgba(255,255,255,0.05);margin-top:20px}
+.ad-slot{width:100%;min-height:80px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;margin:16px 0;border-radius:8px}
 </style>
 </head>
 <body>
@@ -236,7 +238,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="home-content">
       <div class="logo-area">
         <div class="logo-icon">&#129504;</div>
-        <h1 class="title">SBTI</h1>
+        <h1 class="title">灵魂解码</h1>
         <h2 class="subtitle">人格测试</h2>
         <p class="tagline">40种人格等你解锁</p>
         <p class="personality-count">55道题库 · 每次随机 · 隐藏人格等你发现</p>
@@ -249,6 +251,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
         <span class="arrow">&#8594;</span>
       </div>
       <p class="counter">已有 <b id="test-count">0</b> 人完成测试</p>
+      <div class="disclaimer"><p>本测试仅供娱乐参考，不构成任何心理学评估或诊断</p><p>&copy; 2026 灵魂解码 Soul Decode &middot; 保留所有权利</p></div>
     </div>
   </div>
 
@@ -285,6 +288,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
           <h3>十五维度分析</h3>
           <canvas id="radar-canvas" width="680" height="680"></canvas>
         </div>
+        <div class="ad-slot" id="ad-result-bottom"><!-- 广告位 --></div>
         <div class="result-buttons">
           <button class="btn-result btn-primary" id="btn-share">生成分享海报</button>
           <button class="btn-result btn-secondary" id="btn-square">去广场看看</button>
@@ -310,6 +314,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <!-- SQUARE -->
   <div id="page-square" class="page">
     <div class="square-content">
+      <div class="ad-slot" id="ad-square-top"><!-- 广告位 --></div>
       <div class="square-header">
         <h2>人格广场</h2>
         <p>实时人格分布与热门排行</p>
@@ -358,20 +363,20 @@ const QUESTIONS = [
   {id:13,text:'外人的评价与看法，对我而言毫无影响',dim:'S2',opts:['影响很大','有点影响','毫无影响'],rev:false},
   {id:14,text:'别人夸我执行力强，其实我只是被逼到最后一刻才行动',dim:'Ac3',opts:['我确实执行力强','偶尔拖延','经常最后一刻'],rev:true},
   {id:15,text:'我做事有明确目标，不会浑浑噩噩度日',dim:'A3',opts:['没有目标','有时有','目标明确'],rev:false},
-  {id:16,text:'此题无题干，请盲选',dim:'Ac2',opts:['反复纠结后选A','随便选B吧','不会就选C'],rev:false},
+  {id:16,text:'如果必须用一种动物形容自己，你会选？',dim:'Ac2',opts:['狮子——勇敢果断','猫咪——独立优雅','海豚——友善温暖'],rev:false},
   {id:17,text:'我常常觉得人生毫无意义，人和动物没有本质区别',dim:'A3',opts:['人生很有意义','偶尔这样想','经常这样觉得'],rev:true},
-  {id:18,text:'我不仅是屌丝，还是小丑、咸鱼、牛马、纯纯的废物，每天除了被生活按在地上摩擦，就是对着天花板发呆，梦想？那是什么？能吃吗？',dim:'S1',opts:['狠狠共情','无感','这不是我'],rev:false},
+  {id:18,text:'有时候觉得自己很普通，没有特别出众的才华，也没有惊天动地的经历。但转念一想，普通也没什么不好，能平平安安就是最大的幸福。',dim:'S1',opts:['深有同感','偶尔这样想','我的人生很精彩'],rev:false},
   {id:19,text:'我认为人性本恶，坏人远比好人更多',dim:'A1',opts:['人性本善','不好说','人性本恶'],rev:false},
-  {id:20,text:'便秘久坐马桶30分钟，你的第一反应是？',dim:'Ac1',opts:['继续硬坐坚持','暴躁吐槽自己','直接放弃求助'],rev:false},
+  {id:20,text:'遇到一个完全陌生的挑战，你的第一反应是？',dim:'Ac1',opts:['太好了，又学到新东西','有点紧张但愿意尝试','先看看别人怎么做'],rev:false},
   {id:21,text:'我习惯优先考虑别人，委屈自己也不愿拒绝他人',dim:'So1',opts:['不会委屈自己','偶尔会','经常这样'],rev:false},
   {id:22,text:'我很容易陷入自我怀疑，遇事第一反应是责怪自己',dim:'S3',opts:['不会','偶尔会','经常这样'],rev:true},
   {id:23,text:'独处时我会情绪低落，人前却强行伪装开心',dim:'E2',opts:['独处更开心','偶尔伪装','经常伪装'],rev:false},
-  {id:24,text:'面对社交场合，我只想装死逃避，拒绝一切交流',dim:'So1',opts:['我很享受社交','看心情','只想逃避'],rev:true},
+  {id:24,text:'面对社交场合，我只想安静待着，避免不必要的交流',dim:'So1',opts:['我很享受社交','看心情','只想安静待着'],rev:true},
   {id:25,text:'我对世间万物都无所谓，天塌下来也毫不在意',dim:'S3',opts:['我很在意','看情况','毫不在意'],rev:true},
   {id:26,text:'我物质匮乏钱包空空，但精神状态依旧乐观',dim:'Ac1',opts:['精神也低落','一般般','乐观向上'],rev:false},
-  {id:27,text:'我拒绝内卷与竞争，只想摆烂躺平，回归原始状态',dim:'A1',opts:['我要卷','看情况','只想躺平'],rev:false},
+  {id:27,text:'你更向往哪种生活状态？',dim:'A1',opts:['不断突破自我','稳中求进','简单平静就好'],rev:false},
   {id:28,text:'我擅长假面社交，表面温和得体，内心毫无波澜',dim:'So2',opts:['表里如一','偶尔伪装','擅长假面'],rev:false},
-  {id:29,text:'我对生活彻底失去期待，麻木度日，生无可恋',dim:'Ac2',opts:['充满期待','偶尔麻木','彻底麻木'],rev:false},
+  {id:29,text:'面对连续的挫折，你会怎么做？',dim:'Ac2',opts:['越挫越勇','休息一下再出发','需要时间慢慢消化'],rev:false},
   {id:30,text:'我习惯用搞笑和自嘲，掩盖内心的脆弱与孤独',dim:'E2',opts:['不会','偶尔会','经常这样'],rev:false},
   {id:31,text:'万物皆可一句吐槽概括，情绪极简，不悲不喜',dim:'Ac3',opts:['情绪丰富','偶尔吐槽','句句吐槽'],rev:true},
   // ===== 新增题目 32-55 =====
@@ -401,52 +406,51 @@ const QUESTIONS = [
   {id:55,text:'如果可以拥有一种超能力改善生活，你选？',dim:'Ac1',opts:['瞬间学会任何技能','永远不累不困','看透人心'],rev:false}
 ];
 
-const HOBBY_Q = {id:99,text:'你的爱好是什么？',dim:null,opts:['运动健身','打游戏','饮酒'],rev:false};
-const EXTRA_Q = {id:98,text:'你对饮酒的态度是？',dim:null,opts:['偶尔小酌','保温杯装白酒当水喝','滴酒不沾'],rev:false};
+const HOBBY_Q = {id:99,text:'你的爱好是什么？',dim:null,opts:['运动健身','打游戏','旅行探索'],rev:false};
+const EXTRA_Q = {id:98,text:'你更喜欢哪种旅行方式？',dim:null,opts:['说走就走的自由行','精心规划的跟团游','宅在家里云旅游'],rev:false};
 
 const PERSONALITIES = [
   {code:'Ctrl',name:'拿捏者',pattern:'HMHHMHMHMMMLHHM',quote:'一切尽在掌握',desc:'你天生就是掌控全局的人，任何局面都能被你轻松拿捏。冷静、果断、运筹帷幄是你的代名词。',color:'#7c3aed',emoji:'&#127918;'},
-  {code:'ATM',name:'送钱者',pattern:'LLMLHLMLLMLLLLML',quote:'我的就是你的',desc:'你对朋友慷慨到令人心疼，钱包永远为别人敞开。你的善良是最大的财富，但也别忘了心疼自己。',color:'#f59e0b',emoji:'&#128181;'},
-  {code:'Dior',name:'屌丝',pattern:'LMLMMMLLMLLLMLMM',quote:'人间不值得',desc:'你觉得自己是世界上最普通的存在，但请相信，每个屌丝心中都住着一个不甘平凡的灵魂。',color:'#64748b',emoji:'&#128546;'},
+  {code:'WARM',name:'暖心人',pattern:'LLMLHLMLLMLLLLML',quote:'有我在呢',desc:'你对朋友慷慨到令人感动，总是第一个伸出援手。你的善良是最大的财富，但也别忘了心疼自己。你值得被好好对待！',color:'#f59e0b',emoji:'&#128181;'},
+  {code:'DREAM',name:'追梦人',pattern:'LMLMMMLLMLLLMLMM',quote:'平凡但不平庸',desc:'你脚踏实地，不浮躁不虚荣。平凡是你的底色，但不平凡是你的方向。每一个伟大的梦想，都从平凡开始。继续加油，未来可期！',color:'#64748b',emoji:'&#128546;'},
   {code:'BOSS',name:'领导者',pattern:'HHHHHMHHHHHHHMH',quote:'跟我走就对了',desc:'天生的领导者，你的气场让周围的人不自觉地追随。你注定要成就一番大事。',color:'#ef4444',emoji:'&#128081;'},
   {code:'THANK',name:'感恩者',pattern:'MHHMHMMMHHMMMLM',quote:'谢谢这个世界',desc:'你总能看到生活中的美好，感恩是你最大的超能力。你的正能量感染着身边的每一个人。',color:'#10b981',emoji:'&#128591;'},
-  {code:'OHNO',name:'哦不人',pattern:'LLLLMLMLMLMLMLM',quote:'完了完了完了',desc:'你的内心住着一个永远在焦虑的小人，但这也让你更加谨慎和周全。放轻松，一切都会好的。',color:'#f97316',emoji:'&#128551;'},
+  {code:'CARE',name:'谨慎人',pattern:'LLLLMLMLMLMLMLM',quote:'三思而后行',desc:'你的谨慎和周全让你避免了很多麻烦。做事考虑周全是优点，但也要学会信任自己和他人。放轻松，你已经做得很好了！',color:'#f97316',emoji:'&#128551;'},
   {code:'GOGO',name:'行者',pattern:'HMHMMHHMHMMHHMH',quote:'说干就干',desc:'行动力爆表的你，从不犹豫，想到就做，效率惊人。你是朋友圈里最靠谱的行动派。',color:'#3b82f6',emoji:'&#127939;'},
   {code:'SEXY',name:'尤物',pattern:'HHHHMMMHMMMLMH',quote:'魅力无法挡',desc:'你自带一种让人无法忽视的魅力，走到哪里都是焦点。你的存在本身就是一道风景。',color:'#ec4899',emoji:'&#128139;'},
   {code:'LOVER',name:'多情者',pattern:'MMMHMLMMMMLMMMH',quote:'爱是永恒的主题',desc:'你是一个为爱而生的人，感情是你生命中最重要的东西。你的深情让人动容。',color:'#f43f5e',emoji:'&#128149;'},
   {code:'MUM',name:'妈妈',pattern:'MMMLHLMMMLMLLM',quote:'来，多吃点',desc:'你天生自带母性光辉，照顾别人是你最大的快乐。你是所有人心中最温暖的存在。',color:'#a855f7',emoji:'&#129328;'},
-  {code:'FAKE',name:'伪人',pattern:'MMMHMMHMMMLLMHL',quote:'表面笑嘻嘻',desc:'你精通社交面具的艺术，表面温和内心冷静。在复杂的人际关系中游刃有余。',color:'#6366f1',emoji:'&#127917;'},
-  {code:'OJBK',name:'无所谓人',pattern:'MMLMMMLLLMLMM',quote:'都行',desc:'你对一切都持无所谓态度，佛系人生，随遇而安。这种超然的态度其实是一种境界。',color:'#78716c',emoji:'&#128528;'},
-  {code:'MALO',name:'吗喽',pattern:'LMLMMMLMMMLMM',quote:'吗喽的命也是命',desc:'你自嘲是吗喽，但吗喽也有吗喽的快乐。你的自黑能力让人又心疼又想笑。',color:'#a16207',emoji:'&#128055;'},
-  {code:'JOKER',name:'小丑',pattern:'LMMHMMMLMMMLMH',quote:'哈哈哈哈',desc:'你用笑声掩盖一切，搞笑是你的保护色。但在笑声背后，是一颗敏感而温柔的心。',color:'#eab308',emoji:'&#129313;'},
-  {code:'WOC',name:'握草人',pattern:'MMHMMMLMMMLH',quote:'卧槽！',desc:'你的情绪写在脸上，反应永远比别人大一倍。你的真实和直接让人又爱又怕。',color:'#ef4444',emoji:'&#128558;'},
+  {code:'SHIFT',name:'百变星',pattern:'MMMHMMHMMMLLMHL',quote:'千人千面',desc:'你精通社交的艺术，能在不同场合展现最合适的一面。这不是虚伪，而是一种高情商的表现。你的适应力让你在任何环境都能如鱼得水！',color:'#6366f1',emoji:'&#127917;'},
+  {code:'FLOW',name:'随缘人',pattern:'MMLMMMLLLMLMM',quote:'顺其自然',desc:'你对一切都持开放态度，随遇而安。这种超然的态度其实是一种人生境界。保持这份从容，但也别忘了追求自己真正想要的东西。',color:'#78716c',emoji:'&#128528;'},
+  {code:'SUN',name:'乐天派',pattern:'LMLMMMLMMMLMM',quote:'每天都是好日子',desc:'你天生乐观，无论遇到什么困难都能笑着面对。你的阳光心态是身边人的能量补给站。保持这份快乐，世界因你而美好！',color:'#a16207',emoji:'&#128055;'},
+  {code:'JOY',name:'开心果',pattern:'LMMHMMMLMMMLMH',quote:'笑口常开',desc:'你是天生的气氛担当，总能用幽默化解尴尬。你的笑声是治愈他人的良药，也是你最迷人的特质。把快乐传递下去吧！',color:'#eab308',emoji:'&#129313;'},
+  {code:'FEEL',name:'感性人',pattern:'MMHMMMLMMMLH',quote:'天哪！',desc:'你的情绪丰富而真实，开心就笑难过就哭。这种真诚让你特别有感染力。做真实的自己，你的感性是一种天赋！',color:'#ef4444',emoji:'&#128558;'},
   {code:'THINK',name:'思考者',pattern:'MHHMMHMMMMMLMM',quote:'让我想想',desc:'你是一个深度思考者，任何事都要想清楚才行动。你的洞察力让人佩服。',color:'#6366f1',emoji:'&#129504;'},
-  {code:'SHIT',name:'愤世者',pattern:'MMHLMHLMMLMHM',quote:'这个世界烂透了',desc:'你看透了世界的本质，虽然悲观但清醒。你的犀利观点总是一针见血。',color:'#475569',emoji:'&#128169;'},
-  {code:'ZZZZ',name:'装死者',pattern:'LMLMLHMLLLHLHL',quote:'已读不回',desc:'你最擅长的就是消失，社交恐惧让你选择装死。但偶尔出现一下，大家还是很想你的。',color:'#6b7280',emoji:'&#128164;'},
+  {code:'EYE',name:'观察者',pattern:'MMHLMHLMMLMHM',quote:'让我仔细看看',desc:'你有着超乎常人的洞察力，总能看到事物背后的本质。你的犀利不是冷漠，而是一种清醒的爱。用这份洞察力去帮助更多人吧！',color:'#475569',emoji:'&#128169;'},
+  {code:'ZEN',name:'佛系人',pattern:'LMLMLHMLLLHLHL',quote:'随遇而安',desc:'你选择了一种从容的生活态度，不被外界打扰。你的淡定和从容是一种智慧。偶尔主动出击，你会发现世界比你想象的更精彩！',color:'#6b7280',emoji:'&#128164;'},
   {code:'POOR',name:'贫困者',pattern:'LMMHMMMHMLMM',quote:'穷开心',desc:'虽然钱包空空，但你的精神世界无比富足。乐观是你最大的财富。',color:'#854d0e',emoji:'&#128522;'},
   {code:'MONK',name:'僧人',pattern:'MHHHMLHHHMMMH',quote:'四大皆空',desc:'你已经看破红尘，内心平静如水。你的超脱让人羡慕，也让人好奇你经历了什么。',color:'#d97706',emoji:'&#129495;'},
-  {code:'IMSB',name:'傻者',pattern:'LLLMHMLMLLHLL',quote:'啊？',desc:'你反应永远慢半拍，但傻人有傻福。你的单纯和善良是这个复杂世界里的稀缺品质。',color:'#a3a3a3',emoji:'&#129323;'},
+  {code:'PURE',name:'单纯者',pattern:'LLLMHMLMLLHLL',quote:'简单就是快乐',desc:'你的单纯和善良是这个复杂世界里的稀缺品质。不要觉得反应慢是缺点，那是你在认真感受生活。保持纯真，这很珍贵！',color:'#a3a3a3',emoji:'&#129323;'},
   {code:'WOLF',name:'孤狼',pattern:'HHHMMLHHMHMLHL',quote:'独来独往',desc:'你享受孤独，不需要别人的认可也能活得精彩。你的独立和强大让人敬畏。',color:'#1d4ed8',emoji:'&#128058;'},
   {code:'STAR',name:'明星',pattern:'HHHHHLMMHMMMLH',quote:'聚光灯下',desc:'你天生就是舞台的中心，享受被关注的感觉。你的光芒照亮了每一个角落。',color:'#fbbf24',emoji:'&#11088;'},
   {code:'NORM',name:'普通人',pattern:'MMMMMMMMMMMMMMM',quote:'还行吧',desc:'你就是芸芸众生中最普通的那一个，但普通也是一种幸福。平凡中自有不平凡。',color:'#94a3b8',emoji:'&#128578;'},
   {code:'KING',name:'王者',pattern:'HHHHHHHHHHHHHHH',quote:'朕知道了',desc:'你是天生的王者，一切尽在掌控。你的气场、能力和魅力都达到了巅峰。',color:'#f59e0b',emoji:'&#129409;'},
-  {code:'DEAD',name:'死者',pattern:'LLLLLLLLLLLLLLL',quote:'...',desc:'你已经对这个世界没有任何感觉了。如果可以，请给自己一个拥抱。',color:'#1e1e1e',emoji:'&#128128;',hidden:true},
-  {code:'DRUNK',name:'酒鬼',pattern:'MMMMMMMMMMMMMMM',quote:'再来一杯',desc:'酒是你的灵魂伴侣，没有酒的人生不值得过。你的豪爽和洒脱让人又爱又恨。',color:'#dc2626',emoji:'&#127866;',hidden:true},
+  {code:'HIDDEN',name:'隐者',pattern:'LLLLLLLLLLLLLLL',quote:'深藏不露',desc:'你选择用沉默代替喧嚣，用内省代替外求。你的内心世界比任何人想象的都要丰富。给自己一个拥抱，世界需要你。',color:'#1e1e1e',emoji:'&#128128;',hidden:true},
   // ===== 新增人格 =====
   {code:'HERO',name:'英雄',pattern:'HHMHMHHMHMHMMH',quote:'我来了',desc:'你天生自带英雄光环，关键时刻总能挺身而出。你的勇气和正义感是这个世界的稀缺品。',color:'#2563eb',emoji:'&#127941;'},
-  {code:'DEVIL',name:'恶魔',pattern:'LHLLHLMLLHLMHL',quote:'嘿嘿嘿',desc:'你内心住着一个小恶魔，喜欢恶作剧和打破规则。你的叛逆让世界更有趣。',color:'#991b1b',emoji:'&#128520;'},
+  {code:'PIXIE',name:'调皮鬼',pattern:'LHLLHLMLLHLMHL',quote:'猜猜我干了啥',desc:'你古灵精怪，总有出其不意的创意。你的调皮不是恶意，而是一种有趣的个性。用你的创造力去给世界带来更多惊喜吧！',color:'#991b1b',emoji:'&#128520;'},
   {code:'ANGEL',name:'天使',pattern:'HHMHHHMHMHHMHM',quote:'一切都会好的',desc:'你是行走的正能量，永远看到事物美好的一面。你的温暖治愈着身边的每一个人。',color:'#f0abfc',emoji:'&#128319;'},
   {code:'NERD',name:'学神',pattern:'HHMHMMHHHMHMMH',quote:'这题我会',desc:'你的大脑是一座图书馆，知识储备让人叹为观止。但别只顾着学习，偶尔也出来晒晒太阳。',color:'#0891b2',emoji:'&#128218;'},
   {code:'SLY',name:'狐狸',pattern:'MHMHLHMMLHMLMH',quote:'你猜',desc:'你精明如狐，洞察一切却不轻易表露。你的智慧和策略让你在任何博弈中都能占据上风。',color:'#b45309',emoji:'&#129418;'},
   {code:'PUPPY',name:'修勾',pattern:'HMLMMHMHMMHMLM',quote:'汪汪汪！',desc:'你热情似火，对每个人都充满善意。你的快乐是会传染的，有你在的地方就有欢笑。',color:'#fb923c',emoji:'&#128054;'},
   {code:'CAT',name:'猫主子',pattern:'MHLMHLMHLMHLML',quote:'别碰我',desc:'你高冷独立，不轻易让人靠近。但一旦认定了谁，就会用最柔软的方式陪伴。',color:'#8b5cf6',emoji:'&#128049;'},
-  {code:'GHOST',name:'幽灵',pattern:'LLMLLMLLMLLMLL',quote:'你看到我了吗',desc:'你存在感极低，总是默默出现在角落又默默消失。但你的观察力和洞察力远超常人。',color:'#6b7280',emoji:'&#128123;',hidden:true},
+  {code:'WATCH',name:'守望者',pattern:'LLMLLMLLMLLMLL',quote:'我一直在',desc:'你安静地待在角落，默默观察着一切。你的观察力和洞察力远超常人。偶尔走出来分享你的智慧，大家会发现你有多棒！',color:'#6b7280',emoji:'&#128123;',hidden:true},
   {code:'GOD',name:'神',pattern:'HHHHHHHHHHHHHHH',quote:'朕即天下',desc:'你是万中无一的存在，15个维度全部拉满。你的强大让人仰望，但高处不胜寒。',color:'#fbbf24',emoji:'&#127775;',hidden:true},
   {code:'COOK',name:'厨神',pattern:'MHMMHMHMMHMMHM',quote:'出锅了',desc:'你用美食治愈一切，厨房是你的战场。你的温暖和体贴都藏在一粥一饭里。',color:'#ea580c',emoji:'&#127859;'},
   {code:'ART',name:'艺术家',pattern:'HMHLMHMLHMHLHM',quote:'看不懂就对了',desc:'你用独特的视角看待世界，创造力是你最大的武器。你的作品让普通人感到震撼和不解。',color:'#c026d3',emoji:'&#127912;'},
   {code:'CAP',name:'船长',pattern:'HHHMHHMHMMHHMH',quote:'全员就位',desc:'你是天生的领导者，但不同于BOSS的强势，你用智慧和远见引领方向。大家愿意追随你。',color:'#1d4ed8',emoji:'&#9973;'},
-  {code:'BUG',name:'赛博人',pattern:'MMLMMMLMMMLMMM',quote:'404 Not Found',desc:'你的生活高度数字化，社交靠网络，感情靠表情包。真实世界对你来说有点难懂。',color:'#22d3ee',emoji:'&#129302;'},
-  {code:'LOVE',name:'恋爱脑',pattern:'MLMHHMMLMMHMLM',quote:'你是我的一切',desc:'爱情是你生命的全部意义，一旦恋爱就全身心投入。你的深情让人感动，但也要记得爱自己。',color:'#f472b6',emoji:'&#128152;'}
+  {code:'CODE',name:'数字达人',pattern:'MMLMMMLMMMLMMM',quote:'代码改变世界',desc:'你对科技和数字世界有着天然的亲和力。你的技术能力让人佩服，但也要记得偶尔放下手机，去感受真实世界的美好！',color:'#22d3ee',emoji:'&#129302;'},
+  {code:'DEVOT',name:'痴情人',pattern:'MLMHHMMLMMHMLM',quote:'全心全意',desc:'你对待感情全心全意，一旦认定就全力以赴。你的深情让人动容。在爱别人的同时，也要记得好好爱自己。你值得被同样深情对待！',color:'#f472b6',emoji:'&#128152;'}
 ];
 
 const DAILY_QUESTIONS = [
@@ -634,7 +638,7 @@ function selectOption(q,val,el){
     if(q.id===99){
       // Hobby question
       if(val===3){
-        // Selected 饮酒 - show extra question
+        // Selected 旅行探索 - show extra question
         state.showExtra=true;
         state.shuffled.splice(state.currentIdx+1,0,EXTRA_Q);
         state.currentIdx++;
@@ -643,10 +647,10 @@ function selectOption(q,val,el){
       }
     }
     if(q.id===98){
-      // Extra drink question
+      // Extra travel question
       if(val===2){
-        // 保温杯装白酒 - assign DRUNK
-        state.result=PERSONALITIES.find(p=>p.code==='DRUNK');
+        // 宅在家里云旅游 - assign HIDDEN
+        state.result=PERSONALITIES.find(p=>p.code==='HIDDEN');
         state.scores=DIMS.map(()=>2);
         save();
         showResult();
@@ -689,18 +693,18 @@ function calculateResult(){
     if(d<bestDist){bestDist=d;best=p}
   });
 
-  // Check for DEAD (all L)
+  // Check for HIDDEN (all L)
   if(pattern==='LLLLLLLLLLLLLLL'){
-    best=PERSONALITIES.find(p=>p.code==='DEAD');
+    best=PERSONALITIES.find(p=>p.code==='HIDDEN');
   }
   // Check for GOD (all H)
   if(pattern==='HHHHHHHHHHHHHHH'){
     best=PERSONALITIES.find(p=>p.code==='GOD');
   }
-  // Check for GHOST (mostly L, <=3 M/H)
+  // Check for WATCH (mostly L, <=3 M/H)
   let lCount=(pattern.match(/L/g)||[]).length;
   if(lCount>=13&&pattern!=='LLLLLLLLLLLLLLL'){
-    let ghostP=PERSONALITIES.find(p=>p.code==='GHOST');
+    let ghostP=PERSONALITIES.find(p=>p.code==='WATCH');
     if(ghostP)best=ghostP;
   }
 
@@ -829,7 +833,7 @@ function generatePoster(){
 
   // Top branding
   ctx.fillStyle='#64748b';ctx.font='28px sans-serif';ctx.textAlign='center';
-  ctx.fillText('SBTI 人格测试',w/2,60);
+  ctx.fillText('灵魂解码 · 人格测试',w/2,60);
 
   // Divider
   ctx.beginPath();ctx.moveTo(100,85);ctx.lineTo(w-100,85);
@@ -837,8 +841,12 @@ function generatePoster(){
   lineGrad.addColorStop(0,'transparent');lineGrad.addColorStop(0.5,r.color+'60');lineGrad.addColorStop(1,'transparent');
   ctx.strokeStyle=lineGrad;ctx.lineWidth=1;ctx.stroke();
 
-  // Emoji
-  ctx.font='100px sans-serif';ctx.fillText(r.emoji,w/2,210);
+  // Emoji - decode HTML entities to unicode
+  let emojiText=r.emoji;
+  let temp=document.createElement('textarea');
+  temp.innerHTML=emojiText;
+  emojiText=temp.value;
+  ctx.font='100px sans-serif';ctx.fillText(emojiText,w/2,210);
 
   // Code
   ctx.font='bold 80px "Noto Serif SC",sans-serif';
@@ -867,17 +875,38 @@ function generatePoster(){
 
   // Bottom branding
   ctx.fillStyle='#334155';ctx.font='24px sans-serif';
-  ctx.fillText('扫码或搜索「SBTI人格测试」',w/2,1040);
+  ctx.fillText('扫码或搜索「灵魂解码」',w/2,1040);
 
-  // QR placeholder
-  ctx.strokeStyle='#334155';ctx.lineWidth=2;
-  ctx.strokeRect(w/2-60,1060,120,120);
-  ctx.fillStyle='#475569';ctx.font='20px sans-serif';
-  ctx.fillText('二维码',w/2,1125);
+  // QR Code - generate a simple visual QR code pattern
+  let qrSize=120,qrX=w/2-qrSize/2,qrY=1060;
+  let qrCellSize=qrSize/21;
+  // Generate QR-like pattern from URL string
+  let urlStr=location.href||'soul-decode';
+  let qrData=[];
+  for(let i=0;i<441;i++){
+    let row=Math.floor(i/21),col=i%21;
+    // Border
+    if(row===0||row===20||col===0||col===20){qrData.push(true);continue}
+    // Position detection patterns (top-left, top-right, bottom-left)
+    if(row<7&&col<7){qrData.push(true);continue}
+    if(row<7&&col>13){qrData.push(true);continue}
+    if(row>13&&col<7){qrData.push(true);continue}
+    // Data from URL hash
+    let charCode=urlStr.charCodeAt((row*col+i)%urlStr.length);
+    qrData.push(charCode%3!==0);
+  }
+  // Draw QR code
+  ctx.fillStyle='#e2e8f0';
+  for(let i=0;i<qrData.length;i++){
+    if(qrData[i]){
+      let row=Math.floor(i/21),col=i%21;
+      ctx.fillRect(qrX+col*qrCellSize,qrY+row*qrCellSize,qrCellSize-0.5,qrCellSize-0.5);
+    }
+  }
 
   // Footer
   ctx.fillStyle='#1e293b';ctx.font='22px sans-serif';
-  ctx.fillText('40种人格等你解锁 · SBTI人格测试',w/2,1280);
+  ctx.fillText('40种人格等你解锁 · 灵魂解码',w/2,1280);
 }
 
 function wrapText(ctx,text,x,y,maxW,lineH){
@@ -895,8 +924,8 @@ function wrapText(ctx,text,x,y,maxW,lineH){
 function renderSquare(){
   let distData=[
     {code:'BOSS',name:'领导者',pct:12,color:'#ef4444'},
-    {code:'MALO',name:'吗喽',pct:10,color:'#a16207'},
-    {code:'JOKER',name:'小丑',pct:9,color:'#eab308'},
+    {code:'SUN',name:'乐天派',pct:10,color:'#a16207'},
+    {code:'JOY',name:'开心果',pct:9,color:'#eab308'},
     {code:'MONK',name:'僧人',pct:8,color:'#d97706'},
     {code:'SEXY',name:'尤物',pct:7,color:'#ec4899'},
     {code:'Ctrl',name:'拿捏者',pct:6,color:'#7c3aed'},
@@ -905,14 +934,14 @@ function renderSquare(){
     {code:'HERO',name:'英雄',pct:5,color:'#2563eb'},
     {code:'NERD',name:'学神',pct:4,color:'#0891b2'},
     {code:'ART',name:'艺术家',pct:4,color:'#c026d3'},
-    {code:'LOVE',name:'恋爱脑',pct:4,color:'#f472b6'},
+    {code:'DEVOT',name:'痴情人',pct:4,color:'#f472b6'},
     {code:'ANGEL',name:'天使',pct:3,color:'#f0abfc'},
-    {code:'DEVIL',name:'恶魔',pct:3,color:'#991b1b'},
+    {code:'PIXIE',name:'调皮鬼',pct:3,color:'#991b1b'},
     {code:'SLY',name:'狐狸',pct:3,color:'#b45309'},
     {code:'COOK',name:'厨神',pct:3,color:'#ea580c'},
-    {code:'BUG',name:'赛博人',pct:3,color:'#22d3ee'},
+    {code:'CODE',name:'数字达人',pct:3,color:'#22d3ee'},
     {code:'CAP',name:'船长',pct:2,color:'#1d4ed8'},
-    {code:'GHOST',name:'幽灵',pct:1,color:'#6b7280'},
+    {code:'WATCH',name:'守望者',pct:1,color:'#6b7280'},
     {code:'GOD',name:'神',pct:1,color:'#fbbf24'}
   ];
 
@@ -927,8 +956,8 @@ function renderSquare(){
 
   let rankData=[
     {emoji:'&#128081;',name:'BOSS 领导者',count:'3,847'},
-    {emoji:'&#128055;',name:'MALO 吗喽',count:'3,291'},
-    {emoji:'&#129313;',name:'JOKER 小丑',count:'2,904'},
+    {emoji:'&#128055;',name:'SUN 乐天派',count:'3,291'},
+    {emoji:'&#129313;',name:'JOY 开心果',count:'2,904'},
     {emoji:'&#128054;',name:'PUPPY 修勾',count:'2,583'},
     {emoji:'&#128049;',name:'CAT 猫主子',count:'2,156'},
     {emoji:'&#129495;',name:'MONK 僧人',count:'1,983'},
@@ -945,11 +974,11 @@ function renderSquare(){
   });
   $('#rank-list').innerHTML=rankHtml;
 
-  let feedMsgs=['刚刚测出了 BOSS 领导者！','又一个小丑诞生了','吗喽的命也是命...',
-    '装死者上线了，已读不回','我是 HERO 英雄！','酒鬼出没注意','测出了 SEXY 尤物，太准了',
-    '第三次测还是 OHNO 哦不人','修勾汪汪汪！','GOGO 行者说走就走','猫主子已上线',
-    '学神在此，退散','恋爱脑又来了','天使降临人间','恶魔在人间溜达',
-    '狐狸的智慧你不懂','厨神出锅了！','赛博人404','幽灵飘过...','有人测出了神！'];
+  let feedMsgs=['刚刚测出了 BOSS 领导者！','又一位 PIXIE 调皮鬼诞生了','乐天派上线了，每天都是好日子',
+    '佛系人上线了，随遇而安','我是 HERO 英雄！','隐者出没注意','测出了 SEXY 尤物，太准了',
+    '第三次测还是 CARE 谨慎人','修勾汪汪汪！','GOGO 行者说走就走','猫主子已上线',
+    '学神在此，退散','痴情人又来了','天使降临人间','调皮鬼在人间溜达',
+    '狐狸的智慧你不懂','厨神出锅了！','数字达人代码改变世界','守望者飘过...','有人测出了神！'];
   let feedHtml='';
   feedMsgs.forEach((msg,i)=>{
     let dur=rand(8,15);
@@ -1039,14 +1068,14 @@ function init(){
   $('#btn-save').addEventListener('click',()=>{
     let c=$('#poster-canvas');
     let link=document.createElement('a');
-    link.download='SBTI-'+state.result.code+'-'+state.result.name+'.png';
+    link.download='soul-decode-'+state.result.code+'-'+state.result.name+'.png';
     link.href=c.toDataURL('image/png');
     link.click();
   });
   $('#btn-back-result').addEventListener('click',()=>navigate('result'));
   $('#btn-invite').addEventListener('click',()=>{
     if(navigator.share){
-      navigator.share({title:'SBTI人格测试',text:'我测出了'+state.result?.code+' '+state.result?.name+'！你也来测测吧',url:location.href}).catch(()=>{});
+      navigator.share({title:'灵魂解码 · 人格测试',text:'我测出了'+state.result?.code+' '+state.result?.name+'！你也来测测吧',url:location.href}).catch(()=>{});
     }else{
       navigate('home');
     }
