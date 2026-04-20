@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>SBTI 人格测试</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a1a;--card:rgba(255,255,255,0.05);--card-hover:rgba(255,255,255,0.1);
+  --primary:#7c3aed;--primary-glow:rgba(124,58,237,0.4);
+  --secondary:#10b981;--secondary-glow:rgba(16,185,129,0.4);
+  --tertiary:#f59e0b;--tertiary-glow:rgba(245,158,11,0.4);
+  --text:#e2e8f0;--muted:#64748b;--border:rgba(255,255,255,0.08);
+  --danger:#ef4444;--radius:16px;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei',sans-serif;-webkit-tap-highlight-color:transparent}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;pointer-events:none}
+#app{position:relative;z-index:1;width:100%;height:100%;max-width:480px;margin:0 auto;overflow:hidden}
+.page{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;
+  opacity:0;transform:translateX(60px);transition:all .5s cubic-bezier(.4,0,.2,1);pointer-events:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page.active{opacity:1;transform:translateX(0);pointer-events:auto}
+.page.exit-left{opacity:0;transform:translateX(-60px)}
+
+/* ===== HOME PAGE ===== */
+.home-content{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100%;padding:40px 24px;text-align:center;position:relative}
+.logo-area{margin-bottom:48px}
+.logo-icon{font-size:64px;margin-bottom:16px;animation:float 3s ease-in-out infinite}
+.title{font-size:52px;font-weight:900;letter-spacing:4px;
+  background:linear-gradient(135deg,var(--primary),#a78bfa,var(--secondary));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:glow-text 3s ease-in-out infinite alternate;filter:drop-shadow(0 0 20px var(--primary-glow))}
+.subtitle{font-size:28px;font-weight:700;margin-top:4px;color:var(--text);letter-spacing:8px}
+.tagline{font-size:15px;color:var(--muted);margin-top:12px;letter-spacing:2px}
+.personality-count{font-size:13px;color:var(--tertiary);margin-top:8px;letter-spacing:1px;opacity:.8}
+
+.btn-start{position:relative;padding:16px 64px;font-size:18px;font-weight:700;font-family:inherit;
+  color:#fff;background:linear-gradient(135deg,var(--primary),#6d28d9);border:none;border-radius:50px;
+  cursor:pointer;overflow:hidden;transition:all .3s;letter-spacing:2px;
+  box-shadow:0 0 30px var(--primary-glow),0 0 60px rgba(124,58,237,0.2)}
+.btn-start::before{content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;
+  border-radius:52px;background:linear-gradient(135deg,var(--primary),var(--secondary),var(--tertiary));
+  z-index:-1;animation:rotate-border 3s linear infinite;opacity:0;transition:opacity .3s}
+.btn-start:hover::before,.btn-start:active::before{opacity:1}
+.btn-start:active{transform:scale(.96)}
+.btn-start .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);
+  transform:scale(0);animation:ripple .6s ease-out}
+
+.daily-card{display:flex;align-items:center;gap:12px;margin-top:32px;padding:16px 24px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  cursor:pointer;transition:all .3s;backdrop-filter:blur(10px);width:100%;max-width:320px}
+.daily-card:active{transform:scale(.97);background:var(--card-hover)}
+.daily-icon{font-size:24px}
+.daily-card span:nth-child(2){flex:1;text-align:left;font-size:15px}
+.arrow{color:var(--muted);font-size:18px}
+
+.counter{margin-top:40px;font-size:13px;color:var(--muted);letter-spacing:1px}
+.counter b{color:var(--secondary);font-weight:700}
+
+.has-result-hint{margin-top:16px;padding:10px 20px;font-size:13px;color:var(--tertiary);
+  border:1px solid rgba(245,158,11,.3);border-radius:20px;cursor:pointer;transition:all .3s}
+.has-result-hint:active{background:rgba(245,158,11,.1)}
+
+/* ===== QUIZ PAGE ===== */
+.quiz-header{padding:16px 20px 0;flex-shrink:0}
+.progress-wrap{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.progress-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,var(--primary),var(--secondary),var(--tertiary));
+  background-size:200% 100%;animation:gradient-shift 2s ease infinite;transition:width .4s ease}
+.question-num{font-size:13px;color:var(--muted);white-space:nowrap}
+
+.quiz-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px;overflow:hidden}
+.question-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 24px;margin-bottom:24px;backdrop-filter:blur(10px);
+  animation:card-in .4s ease-out}
+.question-text{font-size:17px;line-height:1.7;font-weight:400}
+
+.options{display:flex;flex-direction:column;gap:12px}
+.option-card{display:flex;align-items:center;gap:14px;padding:18px 20px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  cursor:pointer;transition:all .25s;position:relative;overflow:hidden;backdrop-filter:blur(10px);
+  animation:option-in .4s ease-out both}
+.option-card:nth-child(1){animation-delay:.05s}
+.option-card:nth-child(2){animation-delay:.1s}
+.option-card:nth-child(3){animation-delay:.15s}
+.option-card:active{transform:scale(.97)}
+.option-card.selected{border-color:var(--primary);background:rgba(124,58,237,.12);
+  box-shadow:0 0 20px var(--primary-glow)}
+.option-card.selected .option-label{background:var(--primary);color:#fff}
+.option-label{width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;border:1px solid var(--border);font-size:14px;font-weight:700;
+  flex-shrink:0;transition:all .25s}
+.option-text{font-size:15px;line-height:1.5}
+
+/* ===== RESULT PAGE ===== */
+.result-content{display:flex;flex-direction:column;align-items:center;min-height:100%;
+  padding:40px 24px;text-align:center;overflow-y:auto}
+
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:24px}
+.loading-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--primary);
+  border-radius:50%;animation:spin 1s linear infinite}
+.loading-text{font-size:16px;color:var(--muted);animation:pulse 1.5s ease-in-out infinite}
+
+.result-reveal{display:none;flex-direction:column;align-items:center;width:100%;animation:result-in .8s ease-out}
+.result-reveal.show{display:flex}
+
+.result-emoji{font-size:72px;margin-bottom:8px;animation:bounce-in .6s cubic-bezier(.68,-.55,.27,1.55)}
+.result-code{font-size:42px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.result-name{font-size:24px;font-weight:700;margin-bottom:20px;opacity:0;animation:fade-up .5s .3s forwards}
+.result-quote{font-size:16px;font-style:italic;color:var(--muted);margin-bottom:8px;
+  padding:0 20px;opacity:0;animation:fade-up .5s .5s forwards}
+.result-desc{font-size:14px;line-height:1.8;color:var(--text);max-width:340px;margin-bottom:32px;
+  opacity:0;animation:fade-up .5s .7s forwards}
+
+.radar-section{width:100%;max-width:340px;margin-bottom:32px;opacity:0;animation:fade-up .5s .9s forwards}
+.radar-section h3{font-size:14px;color:var(--muted);margin-bottom:12px;letter-spacing:2px}
+#radar-canvas{width:100%;border-radius:var(--radius)}
+
+.result-buttons{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px;
+  opacity:0;animation:fade-up .5s 1.1s forwards}
+.btn-result{padding:14px 24px;font-size:15px;font-weight:700;font-family:inherit;
+  border:none;border-radius:50px;cursor:pointer;transition:all .3s;letter-spacing:1px}
+.btn-result:active{transform:scale(.96)}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--primary),#6d28d9);
+  box-shadow:0 4px 20px var(--primary-glow)}
+.btn-secondary{color:var(--text);background:var(--card);border:1px solid var(--border);
+  backdrop-filter:blur(10px)}
+.btn-ghost{color:var(--muted);background:transparent;border:1px solid var(--border)}
+
+/* ===== SHARE PAGE ===== */
+.share-content{display:flex;flex-direction:column;align-items:center;padding:24px;min-height:100%}
+.share-content h2{font-size:20px;margin-bottom:20px;letter-spacing:2px}
+.poster-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;margin-bottom:20px;backdrop-filter:blur(10px)}
+#poster-canvas{border-radius:12px;display:block;max-width:100%}
+.share-hint{text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px}
+.share-actions{display:flex;gap:12px;width:100%;max-width:320px}
+.share-actions .btn-result{flex:1}
+
+/* ===== SQUARE PAGE ===== */
+.square-content{padding:20px;min-height:100%;overflow-y:auto}
+.square-header{text-align:center;margin-bottom:24px}
+.square-header h2{font-size:22px;font-weight:900;margin-bottom:4px;
+  background:linear-gradient(135deg,var(--primary),var(--tertiary));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.square-header p{font-size:13px;color:var(--muted)}
+
+.dist-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:16px;backdrop-filter:blur(10px)}
+.dist-card h3{font-size:14px;color:var(--muted);margin-bottom:16px;letter-spacing:1px}
+.dist-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dist-label{font-size:12px;width:60px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dist-track{flex:1;height:20px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden}
+.dist-fill{height:100%;border-radius:10px;transition:width 1s ease;min-width:2px}
+.dist-pct{font-size:11px;color:var(--muted);width:36px;flex-shrink:0}
+
+.rank-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:16px;backdrop-filter:blur(10px)}
+.rank-card h3{font-size:14px;color:var(--muted);margin-bottom:12px;letter-spacing:1px}
+.rank-item{display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border)}
+.rank-item:last-child{border:none}
+.rank-num{width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;font-size:12px;font-weight:700;flex-shrink:0}
+.rank-num.top{background:var(--tertiary);color:#000}
+.rank-num.normal{background:var(--card);color:var(--muted)}
+.rank-emoji{font-size:20px}
+.rank-name{flex:1;font-size:14px}
+.rank-count{font-size:12px;color:var(--muted)}
+
+.feed-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:16px;backdrop-filter:blur(10px);overflow:hidden;position:relative;height:200px}
+.feed-card h3{font-size:14px;color:var(--muted);margin-bottom:12px;letter-spacing:1px}
+.feed-list{position:relative;height:150px;overflow:hidden}
+.feed-item{position:absolute;white-space:nowrap;font-size:13px;color:var(--text);
+  padding:4px 12px;background:rgba(255,255,255,.06);border-radius:12px;
+  animation:danmu linear infinite}
+.feed-item:nth-child(odd){color:var(--secondary)}
+.feed-item:nth-child(even){color:var(--tertiary)}
+
+.invite-card{text-align:center;padding:24px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);backdrop-filter:blur(10px)}
+.invite-card p{font-size:14px;color:var(--muted);margin-bottom:12px}
+.invite-card .btn-result{display:inline-block}
+
+/* ===== DAILY PAGE ===== */
+.daily-content{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100%;padding:40px 24px;text-align:center}
+.daily-badge{font-size:13px;color:var(--tertiary);border:1px solid rgba(245,158,11,.3);
+  border-radius:20px;padding:6px 16px;margin-bottom:24px;letter-spacing:1px}
+.daily-question{font-size:18px;line-height:1.7;margin-bottom:32px;max-width:320px}
+.daily-result{display:none;flex-direction:column;align-items:center;animation:result-in .6s ease-out}
+.daily-result.show{display:flex}
+.daily-result-emoji{font-size:64px;margin-bottom:12px}
+.daily-result-text{font-size:20px;font-weight:700;margin-bottom:8px}
+.daily-result-desc{font-size:14px;color:var(--muted);margin-bottom:32px}
+.daily-teaser{font-size:13px;color:var(--muted);margin-top:24px}
+
+/* ===== ANIMATIONS ===== */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes glow-text{0%{filter:drop-shadow(0 0 20px var(--primary-glow))}
+  100%{filter:drop-shadow(0 0 40px var(--primary-glow)) drop-shadow(0 0 80px rgba(124,58,237,.2))}}
+@keyframes rotate-border{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+@keyframes gradient-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes card-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes option-in{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes result-in{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes bounce-in{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes fade-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes danmu{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<canvas id="confetti-canvas"></canvas>
+<div id="app">
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div class="home-content">
+      <div class="logo-area">
+        <div class="logo-icon">&#129504;</div>
+        <h1 class="title">SBTI</h1>
+        <h2 class="subtitle">人格测试</h2>
+        <p class="tagline">40种人格等你解锁</p>
+        <p class="personality-count">55道题库 · 每次随机 · 隐藏人格等你发现</p>
+      </div>
+      <button class="btn-start" id="btn-start">开始测试</button>
+      <div id="has-result" class="has-result-hint" style="display:none"></div>
+      <div class="daily-card" id="btn-daily">
+        <span class="daily-icon">&#128197;</span>
+        <span>每日一题</span>
+        <span class="arrow">&#8594;</span>
+      </div>
+      <p class="counter">已有 <b id="test-count">0</b> 人完成测试</p>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="page-quiz" class="page">
+    <div class="quiz-header">
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <span class="question-num" id="question-num">第 1 / 31 题</span>
+      </div>
+    </div>
+    <div class="quiz-body">
+      <div class="question-card" id="question-card">
+        <p class="question-text" id="question-text"></p>
+      </div>
+      <div class="options" id="options-container"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="page-result" class="page">
+    <div class="result-content">
+      <div class="loading-state" id="loading-state">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">正在分析你的人格...</p>
+      </div>
+      <div class="result-reveal" id="result-reveal">
+        <div class="result-emoji" id="result-emoji"></div>
+        <div class="result-code" id="result-code"></div>
+        <div class="result-name" id="result-name"></div>
+        <div class="result-quote" id="result-quote"></div>
+        <div class="result-desc" id="result-desc"></div>
+        <div class="radar-section">
+          <h3>十五维度分析</h3>
+          <canvas id="radar-canvas" width="680" height="680"></canvas>
+        </div>
+        <div class="result-buttons">
+          <button class="btn-result btn-primary" id="btn-share">生成分享海报</button>
+          <button class="btn-result btn-secondary" id="btn-square">去广场看看</button>
+          <button class="btn-result btn-ghost" id="btn-retry">再测一次</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARE -->
+  <div id="page-share" class="page">
+    <div class="share-content">
+      <h2>分享海报</h2>
+      <div class="poster-wrap"><canvas id="poster-canvas" width="750" height="1334"></canvas></div>
+      <p class="share-hint">长按图片保存，分享给好友</p>
+      <div class="share-actions">
+        <button class="btn-result btn-primary" id="btn-save">保存图片</button>
+        <button class="btn-result btn-secondary" id="btn-back-result">返回结果</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQUARE -->
+  <div id="page-square" class="page">
+    <div class="square-content">
+      <div class="square-header">
+        <h2>人格广场</h2>
+        <p>实时人格分布与热门排行</p>
+      </div>
+      <div class="dist-card"><h3>今日人格分布</h3><div id="dist-bars"></div></div>
+      <div class="rank-card"><h3>最热门人格 TOP 5</h3><div id="rank-list"></div></div>
+      <div class="feed-card"><h3>实时测试动态</h3><div class="feed-list" id="feed-list"></div></div>
+      <div class="invite-card">
+        <p>你的好友是什么人格？</p>
+        <button class="btn-result btn-primary" id="btn-invite">邀请好友测试</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY -->
+  <div id="page-daily" class="page">
+    <div class="daily-content" id="daily-content"></div>
+  </div>
+
+</div>
+
+<script>
+// ==================== DATA ====================
+const DIMS = ['S1','S2','S3','E1','E2','E3','A1','A2','A3','Ac1','Ac2','Ac3','So1','So2','So3'];
+const DIM_LABELS = ['自尊','清晰','价值','安全','投入','边界','世界','灵活','意义','动机','决策','执行','社交','距离','真实'];
+const DIM_NAMES = {
+  S1:'自尊自信',S2:'自我清晰度',S3:'核心价值',E1:'依恋安全感',E2:'情感投入度',E3:'边界与依赖',
+  A1:'世界观倾向',A2:'规则与灵活度',A3:'人生意义感',Ac1:'动机导向',Ac2:'决策风格',Ac3:'执行模式',
+  So1:'社交主动性',So2:'人际边界感',So3:'表达与真实度'
+};
+
+const QUESTIONS = [
+  // ===== 原始31题 =====
+  {id:1,text:'我在不同的人面前，会表现出完全不一样的自己',dim:'So3',opts:['完全不是','偶尔会','经常如此'],rev:true},
+  {id:2,text:'我讨厌自己的计划被突然打破',dim:'A2',opts:['无所谓','有点不爽','非常讨厌'],rev:false},
+  {id:3,text:'我和人相处自带电子围栏，别人靠太近我会本能抗拒',dim:'So2',opts:['没有围栏','看情况','是的'],rev:false},
+  {id:4,text:'伴侣超过5小时不回消息，借口是身体不适，你会怀疑对方撒谎吗？',dim:'E1',opts:['不会怀疑','有点怀疑','肯定在撒谎'],rev:true},
+  {id:5,text:'我心里有负面想法，却很少说出口，大多是碍于情面',dim:'So3',opts:['我会说出来','看情况','很少说出口'],rev:true},
+  {id:6,text:'面对极其完美的伴侣，我也不会全身心投入，保留防备',dim:'E2',opts:['会全身心投入','看情况','会保留防备'],rev:true},
+  {id:7,text:'我在任何亲密关系里，都极度重视个人独立空间',dim:'E3',opts:['不太在意','比较重视','极度重视'],rev:false},
+  {id:8,text:'我总觉得自己不够好，身边所有人都比我优秀',dim:'S1',opts:['我挺好的','偶尔这样','经常这样觉得'],rev:true},
+  {id:9,text:'我渴望和信任的人极度亲密，熟到像家人一样',dim:'E3',opts:['不需要','看情况','非常渴望'],rev:true},
+  {id:10,text:'我在感情里，总是频繁担心被对方抛弃',dim:'E1',opts:['从不担心','偶尔担心','经常担心'],rev:true},
+  {id:11,text:'网友邀约线下见面，我会感到紧张不安、不敢赴约',dim:'So1',opts:['欣然前往','有点紧张','不敢赴约'],rev:true},
+  {id:12,text:'我非常清楚真实的自己到底是什么样子',dim:'S2',opts:['完全不清楚','大概知道','非常清楚'],rev:false},
+  {id:13,text:'外人的评价与看法，对我而言毫无影响',dim:'S2',opts:['影响很大','有点影响','毫无影响'],rev:false},
+  {id:14,text:'别人夸我执行力强，其实我只是被逼到最后一刻才行动',dim:'Ac3',opts:['我确实执行力强','偶尔拖延','经常最后一刻'],rev:true},
+  {id:15,text:'我做事有明确目标，不会浑浑噩噩度日',dim:'A3',opts:['没有目标','有时有','目标明确'],rev:false},
+  {id:16,text:'此题无题干，请盲选',dim:'Ac2',opts:['反复纠结后选A','随便选B吧','不会就选C'],rev:false},
+  {id:17,text:'我常常觉得人生毫无意义，人和动物没有本质区别',dim:'A3',opts:['人生很有意义','偶尔这样想','经常这样觉得'],rev:true},
+  {id:18,text:'我不仅是屌丝，还是小丑、咸鱼、牛马、纯纯的废物，每天除了被生活按在地上摩擦，就是对着天花板发呆，梦想？那是什么？能吃吗？',dim:'S1',opts:['狠狠共情','无感','这不是我'],rev:false},
+  {id:19,text:'我认为人性本恶，坏人远比好人更多',dim:'A1',opts:['人性本善','不好说','人性本恶'],rev:false},
+  {id:20,text:'便秘久坐马桶30分钟，你的第一反应是？',dim:'Ac1',opts:['继续硬坐坚持','暴躁吐槽自己','直接放弃求助'],rev:false},
+  {id:21,text:'我习惯优先考虑别人，委屈自己也不愿拒绝他人',dim:'So1',opts:['不会委屈自己','偶尔会','经常这样'],rev:false},
+  {id:22,text:'我很容易陷入自我怀疑，遇事第一反应是责怪自己',dim:'S3',opts:['不会','偶尔会','经常这样'],rev:true},
+  {id:23,text:'独处时我会情绪低落，人前却强行伪装开心',dim:'E2',opts:['独处更开心','偶尔伪装','经常伪装'],rev:false},
+  {id:24,text:'面对社交场合，我只想装死逃避，拒绝一切交流',dim:'So1',opts:['我很享受社交','看心情','只想逃避'],rev:true},
+  {id:25,text:'我对世间万物都无所谓，天塌下来也毫不在意',dim:'S3',opts:['我很在意','看情况','毫不在意'],rev:true},
+  {id:26,text:'我物质匮乏钱包空空，但精神状态依旧乐观',dim:'Ac1',opts:['精神也低落','一般般','乐观向上'],rev:false},
+  {id:27,text:'我拒绝内卷与竞争，只想摆烂躺平，回归原始状态',dim:'A1',opts:['我要卷','看情况','只想躺平'],rev:false},
+  {id:28,text:'我擅长假面社交，表面温和得体，内心毫无波澜',dim:'So2',opts:['表里如一','偶尔伪装','擅长假面'],rev:false},
+  {id:29,text:'我对生活彻底失去期待，麻木度日，生无可恋',dim:'Ac2',opts:['充满期待','偶尔麻木','彻底麻木'],rev:false},
+  {id:30,text:'我习惯用搞笑和自嘲，掩盖内心的脆弱与孤独',dim:'E2',opts:['不会','偶尔会','经常这样'],rev:false},
+  {id:31,text:'万物皆可一句吐槽概括，情绪极简，不悲不喜',dim:'Ac3',opts:['情绪丰富','偶尔吐槽','句句吐槽'],rev:true},
+  // ===== 新增题目 32-55 =====
+  {id:32,text:'深夜刷到别人秀恩爱，你的反应是？',dim:'E1',opts:['祝福他们','酸了但不说','关掉手机假装没看到'],rev:true},
+  {id:33,text:'领导突然安排一个完全不会的任务，你第一反应是？',dim:'Ac1',opts:['太好了，学新东西','焦虑但会硬上','想辞职'],rev:false},
+  {id:34,text:'你觉得自己是个有趣的人吗？',dim:'S1',opts:['我超有趣的','还行吧','我挺无聊的'],rev:false},
+  {id:35,text:'朋友借钱不还，你会怎么做？',dim:'So2',opts:['直接要回来','暗示一下','算了当送他了'],rev:false},
+  {id:36,text:'你手机里存了多少张表情包？',dim:'So3',opts:['不到50张','100-500张','1000张以上，聊天全靠表情包'],rev:false},
+  {id:37,text:'如果明天是世界末日，你今晚做什么？',dim:'A3',opts:['疯狂享受最后时光','和最爱的人在一起','和平时一样睡觉'],rev:false},
+  {id:38,text:'你在群里发消息没人回，你会？',dim:'S3',opts:['无所谓','有点尴尬','撤回然后怀疑人生'],rev:true},
+  {id:39,text:'面对一个全新的挑战，你的内心OS是？',dim:'Ac2',opts:['冲就完了','让我想想','算了算了'],rev:false},
+  {id:40,text:'你觉得自己在朋友眼中是什么形象？',dim:'S2',opts:['很清楚','大概能猜到','完全不知道'],rev:false},
+  {id:41,text:'周末没有安排，你会？',dim:'Ac3',opts:['主动约人出去玩','在家宅着也行','躺尸一整天'],rev:false},
+  {id:42,text:'你更害怕哪种孤独？',dim:'E3',opts:['没人理解我','身边没有亲密的人','一个人吃饭'],rev:false},
+  {id:43,text:'别人当面批评你，你的反应是？',dim:'S1',opts:['虚心接受','表面接受内心不服','当场怼回去'],rev:false},
+  {id:44,text:'你更相信哪种说法？',dim:'A1',opts:['世界会越来越好的','不好说，走一步看一步','人类没救了'],rev:false},
+  {id:45,text:'你做决定前通常会？',dim:'Ac2',opts:['凭直觉直接选','列个优缺点清单','纠结到最后一秒'],rev:false},
+  {id:46,text:'你觉得规则这种东西？',dim:'A2',opts:['必须遵守','看情况灵活处理','规则就是用来打破的'],rev:false},
+  {id:47,text:'你有多容易"上头"？',dim:'E2',opts:['很难上头','偶尔会','超容易，一秒上头'],rev:false},
+  {id:48,text:'你觉得自己是个"靠谱"的人吗？',dim:'Ac3',opts:['非常靠谱','一般般','经常放鸽子'],rev:false},
+  {id:49,text:'在人群中你通常扮演什么角色？',dim:'So1',opts:['气氛担当','默默倾听者','躲在角落玩手机的人'],rev:false},
+  {id:50,text:'你对"成功"的定义是？',dim:'A3',opts:['实现自我价值','有钱有闲','活着就算成功'],rev:false},
+  {id:51,text:'你更在意别人的哪种评价？',dim:'S2',opts:['不在意任何评价','能力和成就方面','性格和为人方面'],rev:false},
+  {id:52,text:'你觉得自己最缺什么？',dim:'S3',opts:['什么都不缺','缺钱','缺方向和动力'],rev:false},
+  {id:53,text:'朋友突然取消约定，你的反应是？',dim:'E3',opts:['理解，没事','有点失落但不说','很生气但忍着'],rev:false},
+  {id:54,text:'你更享受哪种社交方式？',dim:'So2',opts:['大型聚会热闹','三两好友小聚','一个人待着最舒服'],rev:false},
+  {id:55,text:'如果可以拥有一种超能力改善生活，你选？',dim:'Ac1',opts:['瞬间学会任何技能','永远不累不困','看透人心'],rev:false}
+];
+
+const HOBBY_Q = {id:99,text:'你的爱好是什么？',dim:null,opts:['运动健身','打游戏','饮酒'],rev:false};
+const EXTRA_Q = {id:98,text:'你对饮酒的态度是？',dim:null,opts:['偶尔小酌','保温杯装白酒当水喝','滴酒不沾'],rev:false};
+
+const PERSONALITIES = [
+  {code:'Ctrl',name:'拿捏者',pattern:'HMHHMHMHMMMLHHM',quote:'一切尽在掌握',desc:'你天生就是掌控全局的人，任何局面都能被你轻松拿捏。冷静、果断、运筹帷幄是你的代名词。',color:'#7c3aed',emoji:'&#127918;'},
+  {code:'ATM',name:'送钱者',pattern:'LLMLHLMLLMLLLLML',quote:'我的就是你的',desc:'你对朋友慷慨到令人心疼，钱包永远为别人敞开。你的善良是最大的财富，但也别忘了心疼自己。',color:'#f59e0b',emoji:'&#128181;'},
+  {code:'Dior',name:'屌丝',pattern:'LMLMMMLLMLLLMLMM',quote:'人间不值得',desc:'你觉得自己是世界上最普通的存在，但请相信，每个屌丝心中都住着一个不甘平凡的灵魂。',color:'#64748b',emoji:'&#128546;'},
+  {code:'BOSS',name:'领导者',pattern:'HHHHHMHHHHHHHMH',quote:'跟我走就对了',desc:'天生的领导者，你的气场让周围的人不自觉地追随。你注定要成就一番大事。',color:'#ef4444',emoji:'&#128081;'},
+  {code:'THANK',name:'感恩者',pattern:'MHHMHMMMHHMMMLM',quote:'谢谢这个世界',desc:'你总能看到生活中的美好，感恩是你最大的超能力。你的正能量感染着身边的每一个人。',color:'#10b981',emoji:'&#128591;'},
+  {code:'OHNO',name:'哦不人',pattern:'LLLLMLMLMLMLMLM',quote:'完了完了完了',desc:'你的内心住着一个永远在焦虑的小人，但这也让你更加谨慎和周全。放轻松，一切都会好的。',color:'#f97316',emoji:'&#128551;'},
+  {code:'GOGO',name:'行者',pattern:'HMHMMHHMHMMHHMH',quote:'说干就干',desc:'行动力爆表的你，从不犹豫，想到就做，效率惊人。你是朋友圈里最靠谱的行动派。',color:'#3b82f6',emoji:'&#127939;'},
+  {code:'SEXY',name:'尤物',pattern:'HHHHMMMHMMMLMH',quote:'魅力无法挡',desc:'你自带一种让人无法忽视的魅力，走到哪里都是焦点。你的存在本身就是一道风景。',color:'#ec4899',emoji:'&#128139;'},
+  {code:'LOVER',name:'多情者',pattern:'MMMHMLMMMMLMMMH',quote:'爱是永恒的主题',desc:'你是一个为爱而生的人，感情是你生命中最重要的东西。你的深情让人动容。',color:'#f43f5e',emoji:'&#128149;'},
+  {code:'MUM',name:'妈妈',pattern:'MMMLHLMMMLMLLM',quote:'来，多吃点',desc:'你天生自带母性光辉，照顾别人是你最大的快乐。你是所有人心中最温暖的存在。',color:'#a855f7',emoji:'&#129328;'},
+  {code:'FAKE',name:'伪人',pattern:'MMMHMMHMMMLLMHL',quote:'表面笑嘻嘻',desc:'你精通社交面具的艺术，表面温和内心冷静。在复杂的人际关系中游刃有余。',color:'#6366f1',emoji:'&#127917;'},
+  {code:'OJBK',name:'无所谓人',pattern:'MMLMMMLLLMLMM',quote:'都行',desc:'你对一切都持无所谓态度，佛系人生，随遇而安。这种超然的态度其实是一种境界。',color:'#78716c',emoji:'&#128528;'},
+  {code:'MALO',name:'吗喽',pattern:'LMLMMMLMMMLMM',quote:'吗喽的命也是命',desc:'你自嘲是吗喽，但吗喽也有吗喽的快乐。你的自黑能力让人又心疼又想笑。',color:'#a16207',emoji:'&#128055;'},
+  {code:'JOKER',name:'小丑',pattern:'LMMHMMMLMMMLMH',quote:'哈哈哈哈',desc:'你用笑声掩盖一切，搞笑是你的保护色。但在笑声背后，是一颗敏感而温柔的心。',color:'#eab308',emoji:'&#129313;'},
+  {code:'WOC',name:'握草人',pattern:'MMHMMMLMMMLH',quote:'卧槽！',desc:'你的情绪写在脸上，反应永远比别人大一倍。你的真实和直接让人又爱又怕。',color:'#ef4444',emoji:'&#128558;'},
+  {code:'THINK',name:'思考者',pattern:'MHHMMHMMMMMLMM',quote:'让我想想',desc:'你是一个深度思考者，任何事都要想清楚才行动。你的洞察力让人佩服。',color:'#6366f1',emoji:'&#129504;'},
+  {code:'SHIT',name:'愤世者',pattern:'MMHLMHLMMLMHM',quote:'这个世界烂透了',desc:'你看透了世界的本质，虽然悲观但清醒。你的犀利观点总是一针见血。',color:'#475569',emoji:'&#128169;'},
+  {code:'ZZZZ',name:'装死者',pattern:'LMLMLHMLLLHLHL',quote:'已读不回',desc:'你最擅长的就是消失，社交恐惧让你选择装死。但偶尔出现一下，大家还是很想你的。',color:'#6b7280',emoji:'&#128164;'},
+  {code:'POOR',name:'贫困者',pattern:'LMMHMMMHMLMM',quote:'穷开心',desc:'虽然钱包空空，但你的精神世界无比富足。乐观是你最大的财富。',color:'#854d0e',emoji:'&#128522;'},
+  {code:'MONK',name:'僧人',pattern:'MHHHMLHHHMMMH',quote:'四大皆空',desc:'你已经看破红尘，内心平静如水。你的超脱让人羡慕，也让人好奇你经历了什么。',color:'#d97706',emoji:'&#129495;'},
+  {code:'IMSB',name:'傻者',pattern:'LLLMHMLMLLHLL',quote:'啊？',desc:'你反应永远慢半拍，但傻人有傻福。你的单纯和善良是这个复杂世界里的稀缺品质。',color:'#a3a3a3',emoji:'&#129323;'},
+  {code:'WOLF',name:'孤狼',pattern:'HHHMMLHHMHMLHL',quote:'独来独往',desc:'你享受孤独，不需要别人的认可也能活得精彩。你的独立和强大让人敬畏。',color:'#1d4ed8',emoji:'&#128058;'},
+  {code:'STAR',name:'明星',pattern:'HHHHHLMMHMMMLH',quote:'聚光灯下',desc:'你天生就是舞台的中心，享受被关注的感觉。你的光芒照亮了每一个角落。',color:'#fbbf24',emoji:'&#11088;'},
+  {code:'NORM',name:'普通人',pattern:'MMMMMMMMMMMMMMM',quote:'还行吧',desc:'你就是芸芸众生中最普通的那一个，但普通也是一种幸福。平凡中自有不平凡。',color:'#94a3b8',emoji:'&#128578;'},
+  {code:'KING',name:'王者',pattern:'HHHHHHHHHHHHHHH',quote:'朕知道了',desc:'你是天生的王者，一切尽在掌控。你的气场、能力和魅力都达到了巅峰。',color:'#f59e0b',emoji:'&#129409;'},
+  {code:'DEAD',name:'死者',pattern:'LLLLLLLLLLLLLLL',quote:'...',desc:'你已经对这个世界没有任何感觉了。如果可以，请给自己一个拥抱。',color:'#1e1e1e',emoji:'&#128128;',hidden:true},
+  {code:'DRUNK',name:'酒鬼',pattern:'MMMMMMMMMMMMMMM',quote:'再来一杯',desc:'酒是你的灵魂伴侣，没有酒的人生不值得过。你的豪爽和洒脱让人又爱又恨。',color:'#dc2626',emoji:'&#127866;',hidden:true},
+  // ===== 新增人格 =====
+  {code:'HERO',name:'英雄',pattern:'HHMHMHHMHMHMMH',quote:'我来了',desc:'你天生自带英雄光环，关键时刻总能挺身而出。你的勇气和正义感是这个世界的稀缺品。',color:'#2563eb',emoji:'&#127941;'},
+  {code:'DEVIL',name:'恶魔',pattern:'LHLLHLMLLHLMHL',quote:'嘿嘿嘿',desc:'你内心住着一个小恶魔，喜欢恶作剧和打破规则。你的叛逆让世界更有趣。',color:'#991b1b',emoji:'&#128520;'},
+  {code:'ANGEL',name:'天使',pattern:'HHMHHHMHMHHMHM',quote:'一切都会好的',desc:'你是行走的正能量，永远看到事物美好的一面。你的温暖治愈着身边的每一个人。',color:'#f0abfc',emoji:'&#128319;'},
+  {code:'NERD',name:'学神',pattern:'HHMHMMHHHMHMMH',quote:'这题我会',desc:'你的大脑是一座图书馆，知识储备让人叹为观止。但别只顾着学习，偶尔也出来晒晒太阳。',color:'#0891b2',emoji:'&#128218;'},
+  {code:'SLY',name:'狐狸',pattern:'MHMHLHMMLHMLMH',quote:'你猜',desc:'你精明如狐，洞察一切却不轻易表露。你的智慧和策略让你在任何博弈中都能占据上风。',color:'#b45309',emoji:'&#129418;'},
+  {code:'PUPPY',name:'修勾',pattern:'HMLMMHMHMMHMLM',quote:'汪汪汪！',desc:'你热情似火，对每个人都充满善意。你的快乐是会传染的，有你在的地方就有欢笑。',color:'#fb923c',emoji:'&#128054;'},
+  {code:'CAT',name:'猫主子',pattern:'MHLMHLMHLMHLML',quote:'别碰我',desc:'你高冷独立，不轻易让人靠近。但一旦认定了谁，就会用最柔软的方式陪伴。',color:'#8b5cf6',emoji:'&#128049;'},
+  {code:'GHOST',name:'幽灵',pattern:'LLMLLMLLMLLMLL',quote:'你看到我了吗',desc:'你存在感极低，总是默默出现在角落又默默消失。但你的观察力和洞察力远超常人。',color:'#6b7280',emoji:'&#128123;',hidden:true},
+  {code:'GOD',name:'神',pattern:'HHHHHHHHHHHHHHH',quote:'朕即天下',desc:'你是万中无一的存在，15个维度全部拉满。你的强大让人仰望，但高处不胜寒。',color:'#fbbf24',emoji:'&#127775;',hidden:true},
+  {code:'COOK',name:'厨神',pattern:'MHMMHMHMMHMMHM',quote:'出锅了',desc:'你用美食治愈一切，厨房是你的战场。你的温暖和体贴都藏在一粥一饭里。',color:'#ea580c',emoji:'&#127859;'},
+  {code:'ART',name:'艺术家',pattern:'HMHLMHMLHMHLHM',quote:'看不懂就对了',desc:'你用独特的视角看待世界，创造力是你最大的武器。你的作品让普通人感到震撼和不解。',color:'#c026d3',emoji:'&#127912;'},
+  {code:'CAP',name:'船长',pattern:'HHHMHHMHMMHHMH',quote:'全员就位',desc:'你是天生的领导者，但不同于BOSS的强势，你用智慧和远见引领方向。大家愿意追随你。',color:'#1d4ed8',emoji:'&#9973;'},
+  {code:'BUG',name:'赛博人',pattern:'MMLMMMLMMMLMMM',quote:'404 Not Found',desc:'你的生活高度数字化，社交靠网络，感情靠表情包。真实世界对你来说有点难懂。',color:'#22d3ee',emoji:'&#129302;'},
+  {code:'LOVE',name:'恋爱脑',pattern:'MLMHHMMLMMHMLM',quote:'你是我的一切',desc:'爱情是你生命的全部意义，一旦恋爱就全身心投入。你的深情让人感动，但也要记得爱自己。',color:'#f472b6',emoji:'&#128152;'}
+];
+
+const DAILY_QUESTIONS = [
+  {q:'如果只能选一种超能力，你选？',opts:['读心术','隐身术','时间暂停'],results:['读心大师','隐形刺客','时间领主'],descs:['你能看穿一切虚伪，但真相往往令人痛苦','你享受独处的自由，但偶尔也会感到孤独','你掌控时间的权力，但永远追不回流逝的岁月']},
+  {q:'你的精神状态最像什么动物？',opts:['猫','狗','水豚'],results:['高冷猫系','热情狗系','佛系水豚'],descs:['外表高冷内心柔软，独立是你的铠甲','热情似火忠心耿耿，你是最好的朋友','情绪稳定与世无争，你是朋友圈的定海神针']},
+  {q:'深夜emo时你会做什么？',opts:['刷手机','听歌','发呆'],results:['深夜冲浪选手','音乐疗愈师','发呆艺术家'],descs:['你在信息流中寻找共鸣，直到天亮','你在旋律中寻找慰藉，音乐是最好的解药','你在虚无中寻找答案，发呆也是一种修行']},
+  {q:'如果中了500万，第一件事？',opts:['辞职','买房','投资'],results:['自由灵魂','安居乐业派','理财达人'],descs:['你渴望自由胜过一切，金钱只是工具','你追求安稳的生活，家是你最大的依靠','你善于规划未来，每一分钱都要花在刀刃上']},
+  {q:'你最受不了哪种人？',opts:['装逼犯','杠精','绿茶'],results:['真实主义者','和平主义者','直觉大师'],descs:['你讨厌一切虚伪，真实是你的人生信条','你追求和谐，但也不是好欺负的','你的直觉精准到可怕，一眼就能看穿人心']},
+  {q:'如果可以穿越，你选哪个时代？',opts:['唐朝','宋朝','未来'],results:['盛世追梦人','文艺青年','未来探索者'],descs:['你向往盛世的繁华与开放，你注定不凡','你追求诗意与远方，骨子里是个浪漫主义者','你对未知充满好奇，未来才是你的舞台']},
+  {q:'你的人生座右铭是？',opts:['及时行乐','厚积薄发','顺其自然'],results:['享乐主义者','长期主义者','佛系哲学家'],descs:['你活在当下，快乐是你唯一的信仰','你相信积累的力量，成功只是时间问题','你看淡一切，随缘是你的生活哲学']}
+];
+
+// ==================== STATE ====================
+let state = {
+  page:'home',
+  answers:{},
+  shuffled:[],
+  currentIdx:0,
+  hobbyInserted:false,
+  showExtra:false,
+  result:null,
+  scores:null,
+  dailyAnswered:false
+};
+
+// ==================== UTILS ====================
+function $(s){return document.querySelector(s)}
+function $$(s){return document.querySelectorAll(s)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(arr){let a=[...arr];for(let i=a.length-1;i>0;i--){let j=rand(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+function save(){try{localStorage.setItem('sbti_state',JSON.stringify({answers:state.answers,result:state.result,scores:state.scores}))}catch(e){}}
+function load(){try{let d=JSON.parse(localStorage.getItem('sbti_state'));if(d){state.answers=d.answers||{};state.result=d.result||null;state.scores=d.scores||null}}catch(e){}}
+
+// ==================== ROUTER ====================
+function navigate(page){
+  let cur=$('.page.active');
+  if(cur){
+    cur.classList.remove('active');
+    cur.classList.add('exit-left');
+    setTimeout(()=>cur.classList.remove('exit-left'),500);
+  }
+  setTimeout(()=>{
+    let el=$('#page-'+page);
+    if(el){el.classList.add('active')}
+    state.page=page;
+    window.location.hash=page;
+    if(page==='square')renderSquare();
+    if(page==='daily')renderDaily();
+    if(page==='share'&&state.result)generatePoster();
+    if(page==='home')checkResult();
+  },80);
+}
+
+// ==================== PARTICLES ====================
+let particles=[];
+function initBg(){
+  let c=$('#bg-canvas'),ctx=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<60;i++){
+    particles.push({x:Math.random()*c.width,y:Math.random()*c.height,
+      vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+      r:Math.random()*2+.5,a:Math.random()*.5+.1,
+      color:['#7c3aed','#10b981','#f59e0b','#6366f1'][rand(0,3)]});
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;
+      if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color;ctx.globalAlpha=p.a;ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        let dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        let d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle='rgba(124,58,237,'+(1-d/120)*.08+')';ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ==================== CONFETTI ====================
+let confettiParts=[],confettiRunning=false;
+function launchConfetti(){
+  let c=$('#confetti-canvas'),ctx=c.getContext('2d');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  confettiParts=[];
+  let colors=['#7c3aed','#10b981','#f59e0b','#ec4899','#3b82f6','#ef4444','#fbbf24'];
+  for(let i=0;i<120;i++){
+    confettiParts.push({x:rand(0,c.width),y:rand(-c.height,0),
+      vx:(Math.random()-.5)*4,vy:Math.random()*3+2,
+      w:rand(6,12),h:rand(4,8),rot:Math.random()*360,
+      rv:(Math.random()-.5)*10,color:colors[rand(0,colors.length-1)],a:1});
+  }
+  confettiRunning=true;
+  function draw(){
+    if(!confettiRunning)return;
+    ctx.clearRect(0,0,c.width,c.height);
+    let alive=false;
+    confettiParts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.rot+=p.rv;
+      if(p.y>c.height+20)p.a-=.02;
+      if(p.a<=0)return;
+      alive=true;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=p.a;ctx.fillStyle=p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+    });
+    ctx.globalAlpha=1;
+    if(alive)requestAnimationFrame(draw);
+    else{confettiRunning=false;ctx.clearRect(0,0,c.width,c.height)}
+  }
+  draw();
+}
+
+// ==================== QUIZ ====================
+function startQuiz(){
+  state.answers={};state.currentIdx=0;state.showExtra=false;
+  // 从55题题库中随机抽取31题，确保每个维度至少有2题
+  let byDim={};
+  QUESTIONS.forEach(q=>{if(!byDim[q.dim])byDim[q.dim]=[];byDim[q.dim].push(q)});
+  let selected=[];
+  // 每个维度先随机抽2题
+  DIMS.forEach(dim=>{
+    let pool=byDim[dim]||[];
+    let picked=shuffle(pool).slice(0,2);
+    selected.push(...picked);
+  });
+  // 如果不够31题，从剩余题中随机补
+  let selectedIds=new Set(selected.map(q=>q.id));
+  let remaining=QUESTIONS.filter(q=>!selectedIds.has(q.id));
+  remaining=shuffle(remaining);
+  while(selected.length<31&&remaining.length>0){
+    selected.push(remaining.shift());
+  }
+  // 打乱顺序
+  selected=shuffle(selected);
+  // 在中间随机位置插入爱好题
+  let hobbyPos=rand(3,selected.length-2);
+  selected.splice(hobbyPos,0,HOBBY_Q);
+  state.shuffled=selected;
+  navigate('quiz');
+  setTimeout(()=>renderQuestion(),100);
+}
+
+function renderQuestion(){
+  let q=state.shuffled[state.currentIdx];
+  if(!q)return;
+  let total=state.shuffled.length;
+  let pct=((state.currentIdx)/total*100);
+  $('#progress-fill').style.width=pct+'%';
+  $('#question-num').textContent='第 '+(state.currentIdx+1)+' / '+total+' 题';
+
+  let card=$('#question-card');
+  card.style.animation='none';card.offsetHeight;card.style.animation='card-in .4s ease-out';
+  $('#question-text').textContent=q.text;
+
+  let container=$('#options-container');
+  container.innerHTML='';
+  let labels=['A','B','C'];
+  q.opts.forEach((opt,i)=>{
+    let div=document.createElement('div');
+    div.className='option-card';
+    div.innerHTML='<span class="option-label">'+labels[i]+'</span><span class="option-text">'+opt+'</span>';
+    div.addEventListener('click',()=>selectOption(q,i+1,div));
+    container.appendChild(div);
+  });
+}
+
+function selectOption(q,val,el){
+  $$('.option-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  setTimeout(()=>{
+    if(q.id===99){
+      // Hobby question
+      if(val===3){
+        // Selected 饮酒 - show extra question
+        state.showExtra=true;
+        state.shuffled.splice(state.currentIdx+1,0,EXTRA_Q);
+        state.currentIdx++;
+        renderQuestion();
+        return;
+      }
+    }
+    if(q.id===98){
+      // Extra drink question
+      if(val===2){
+        // 保温杯装白酒 - assign DRUNK
+        state.result=PERSONALITIES.find(p=>p.code==='DRUNK');
+        state.scores=DIMS.map(()=>2);
+        save();
+        showResult();
+        return;
+      }
+    }
+
+    if(q.dim){
+      let v=q.rev?(4-val):val;
+      if(!state.answers[q.dim])state.answers[q.dim]=[];
+      state.answers[q.dim].push(v);
+    }
+
+    state.currentIdx++;
+    if(state.currentIdx>=state.shuffled.length){
+      calculateResult();
+    }else{
+      renderQuestion();
+    }
+  },300);
+}
+
+// ==================== SCORING ====================
+function calculateResult(){
+  let scores=DIMS.map(dim=>{
+    let vals=state.answers[dim]||[];
+    if(vals.length===0)return 2;
+    return vals.reduce((a,b)=>a+b,0)/vals.length;
+  });
+  state.scores=scores;
+
+  let pattern=scores.map(s=>{
+    if(s<=1.5)return'L';if(s<=2.5)return'M';return'H';
+  }).join('');
+
+  // Find closest match (excluding hidden unless special)
+  let best=null,bestDist=999;
+  PERSONALITIES.filter(p=>!p.hidden).forEach(p=>{
+    let d=hamming(pattern,p.pattern);
+    if(d<bestDist){bestDist=d;best=p}
+  });
+
+  // Check for DEAD (all L)
+  if(pattern==='LLLLLLLLLLLLLLL'){
+    best=PERSONALITIES.find(p=>p.code==='DEAD');
+  }
+  // Check for GOD (all H)
+  if(pattern==='HHHHHHHHHHHHHHH'){
+    best=PERSONALITIES.find(p=>p.code==='GOD');
+  }
+  // Check for GHOST (mostly L, <=3 M/H)
+  let lCount=(pattern.match(/L/g)||[]).length;
+  if(lCount>=13&&pattern!=='LLLLLLLLLLLLLLL'){
+    let ghostP=PERSONALITIES.find(p=>p.code==='GHOST');
+    if(ghostP)best=ghostP;
+  }
+
+  state.result=best;
+  save();
+  showResult();
+}
+
+function hamming(a,b){
+  let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d++;return d;
+}
+
+// ==================== RESULT ====================
+function showResult(){
+  navigate('result');
+  $('#loading-state').style.display='flex';
+  $('#result-reveal').classList.remove('show');
+
+  setTimeout(()=>{
+    $('#loading-state').style.display='none';
+    let r=state.result;
+    $('#result-emoji').innerHTML=r.emoji;
+    $('#result-code').textContent=r.code;
+    $('#result-code').style.background='linear-gradient(135deg,'+r.color+','+lighten(r.color,40)+')';
+    $('#result-code').style.webkitBackgroundClip='text';
+    $('#result-code').style.webkitTextFillColor='transparent';
+    $('#result-name').textContent=r.name;
+    $('#result-quote').textContent='"'+r.quote+'"';
+    $('#result-desc').textContent=r.desc;
+    $('#result-reveal').classList.add('show');
+    drawRadar($('#radar-canvas'),state.scores,r.color);
+    setTimeout(()=>launchConfetti(),400);
+  },2200);
+}
+
+function lighten(hex,pct){
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.min(255,r+Math.round((255-r)*pct/100));
+  g=Math.min(255,g+Math.round((255-g)*pct/100));
+  b=Math.min(255,b+Math.round((255-b)*pct/100));
+  return '#'+[r,g,b].map(c=>c.toString(16).padStart(2,'0')).join('');
+}
+
+// ==================== RADAR CHART ====================
+function drawRadar(canvas,scores,color){
+  let ctx=canvas.getContext('2d');
+  let w=canvas.width,h=canvas.height;
+  let cx=w/2,cy=h/2;
+  let r=Math.min(cx,cy)-70;
+  let n=15;
+  let step=Math.PI*2/n;
+  let start=-Math.PI/2;
+
+  ctx.clearRect(0,0,w,h);
+
+  // Grid
+  for(let lv=1;lv<=5;lv++){
+    let lr=r*(lv/5);
+    ctx.beginPath();
+    for(let i=0;i<=n;i++){
+      let a=start+i*step;
+      let x=cx+lr*Math.cos(a),y=cy+lr*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle='rgba(255,255,255,'+(lv===5?.12:.06)+')';
+    ctx.lineWidth=1;ctx.stroke();
+  }
+
+  // Axes
+  for(let i=0;i<n;i++){
+    let a=start+i*step;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    ctx.strokeStyle='rgba(255,255,255,.08)';ctx.stroke();
+  }
+
+  // Data
+  ctx.beginPath();
+  for(let i=0;i<=n;i++){
+    let idx=i%n;
+    let a=start+idx*step;
+    let v=(scores[idx]||2)/3;
+    let x=cx+r*v*Math.cos(a),y=cy+r*v*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle=color+'30';ctx.fill();
+  ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
+
+  // Dots
+  for(let i=0;i<n;i++){
+    let a=start+i*step;
+    let v=(scores[i]||2)/3;
+    let x=cx+r*v*Math.cos(a),y=cy+r*v*Math.sin(a);
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.fill();
+    ctx.strokeStyle='#0a0a1a';ctx.lineWidth=1.5;ctx.stroke();
+  }
+
+  // Labels
+  ctx.fillStyle='#94a3b8';ctx.font='bold 22px "Noto Serif SC",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let i=0;i<n;i++){
+    let a=start+i*step;
+    let lx=cx+(r+36)*Math.cos(a),ly=cy+(r+36)*Math.sin(a);
+    ctx.fillText(DIM_LABELS[i],lx,ly);
+  }
+}
+
+// ==================== POSTER ====================
+function generatePoster(){
+  let c=$('#poster-canvas'),ctx=c.getContext('2d');
+  let w=750,h=1334,r=state.result,scores=state.scores;
+  ctx.clearRect(0,0,w,h);
+
+  // Background gradient
+  let bg=ctx.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,'#0f0f2a');bg.addColorStop(0.5,'#0a0a1a');bg.addColorStop(1,'#0f0f2a');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+
+  // Decorative circles
+  ctx.globalAlpha=.06;
+  ctx.beginPath();ctx.arc(600,200,300,0,Math.PI*2);ctx.fillStyle=r.color;ctx.fill();
+  ctx.beginPath();ctx.arc(100,1000,200,0,Math.PI*2);ctx.fillStyle=r.color;ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Top branding
+  ctx.fillStyle='#64748b';ctx.font='28px sans-serif';ctx.textAlign='center';
+  ctx.fillText('SBTI 人格测试',w/2,60);
+
+  // Divider
+  ctx.beginPath();ctx.moveTo(100,85);ctx.lineTo(w-100,85);
+  let lineGrad=ctx.createLinearGradient(100,0,w-100,0);
+  lineGrad.addColorStop(0,'transparent');lineGrad.addColorStop(0.5,r.color+'60');lineGrad.addColorStop(1,'transparent');
+  ctx.strokeStyle=lineGrad;ctx.lineWidth=1;ctx.stroke();
+
+  // Emoji
+  ctx.font='100px sans-serif';ctx.fillText(r.emoji,w/2,210);
+
+  // Code
+  ctx.font='bold 80px "Noto Serif SC",sans-serif';
+  let codeGrad=ctx.createLinearGradient(w/2-100,0,w/2+100,0);
+  codeGrad.addColorStop(0,r.color);codeGrad.addColorStop(1,lighten(r.color,30));
+  ctx.fillStyle=codeGrad;ctx.fillText(r.code,w/2,310);
+
+  // Name
+  ctx.font='bold 44px "Noto Serif SC",sans-serif';ctx.fillStyle='#e2e8f0';
+  ctx.fillText(r.name,w/2,370);
+
+  // Quote
+  ctx.font='italic 30px "Noto Serif SC",sans-serif';ctx.fillStyle=r.color;
+  ctx.fillText('"'+r.quote+'"',w/2,430);
+
+  // Description
+  ctx.font='26px "Noto Serif SC",sans-serif';ctx.fillStyle='#94a3b8';
+  wrapText(ctx,r.desc,w/2,490,560,38);
+
+  // Mini radar
+  let radarSize=340,radarX=w/2-radarSize/2,radarY=620;
+  let miniCanvas=document.createElement('canvas');
+  miniCanvas.width=radarSize*2;miniCanvas.height=radarSize*2;
+  drawRadar(miniCanvas,scores,r.color);
+  ctx.drawImage(miniCanvas,radarX,radarY,radarSize,radarSize);
+
+  // Bottom branding
+  ctx.fillStyle='#334155';ctx.font='24px sans-serif';
+  ctx.fillText('扫码或搜索「SBTI人格测试」',w/2,1040);
+
+  // QR placeholder
+  ctx.strokeStyle='#334155';ctx.lineWidth=2;
+  ctx.strokeRect(w/2-60,1060,120,120);
+  ctx.fillStyle='#475569';ctx.font='20px sans-serif';
+  ctx.fillText('二维码',w/2,1125);
+
+  // Footer
+  ctx.fillStyle='#1e293b';ctx.font='22px sans-serif';
+  ctx.fillText('40种人格等你解锁 · SBTI人格测试',w/2,1280);
+}
+
+function wrapText(ctx,text,x,y,maxW,lineH){
+  let words=text.split('');let line='';
+  for(let i=0;i<words.length;i++){
+    let test=line+words[i];
+    if(ctx.measureText(test).width>maxW&&line.length>0){
+      ctx.fillText(line,x,y);line=words[i];y+=lineH;
+    }else{line=test}
+  }
+  ctx.fillText(line,x,y);
+}
+
+// ==================== SQUARE ====================
+function renderSquare(){
+  let distData=[
+    {code:'BOSS',name:'领导者',pct:12,color:'#ef4444'},
+    {code:'MALO',name:'吗喽',pct:10,color:'#a16207'},
+    {code:'JOKER',name:'小丑',pct:9,color:'#eab308'},
+    {code:'MONK',name:'僧人',pct:8,color:'#d97706'},
+    {code:'SEXY',name:'尤物',pct:7,color:'#ec4899'},
+    {code:'Ctrl',name:'拿捏者',pct:6,color:'#7c3aed'},
+    {code:'PUPPY',name:'修勾',pct:6,color:'#fb923c'},
+    {code:'CAT',name:'猫主子',pct:5,color:'#8b5cf6'},
+    {code:'HERO',name:'英雄',pct:5,color:'#2563eb'},
+    {code:'NERD',name:'学神',pct:4,color:'#0891b2'},
+    {code:'ART',name:'艺术家',pct:4,color:'#c026d3'},
+    {code:'LOVE',name:'恋爱脑',pct:4,color:'#f472b6'},
+    {code:'ANGEL',name:'天使',pct:3,color:'#f0abfc'},
+    {code:'DEVIL',name:'恶魔',pct:3,color:'#991b1b'},
+    {code:'SLY',name:'狐狸',pct:3,color:'#b45309'},
+    {code:'COOK',name:'厨神',pct:3,color:'#ea580c'},
+    {code:'BUG',name:'赛博人',pct:3,color:'#22d3ee'},
+    {code:'CAP',name:'船长',pct:2,color:'#1d4ed8'},
+    {code:'GHOST',name:'幽灵',pct:1,color:'#6b7280'},
+    {code:'GOD',name:'神',pct:1,color:'#fbbf24'}
+  ];
+
+  let barsHtml='';
+  distData.forEach(d=>{
+    barsHtml+='<div class="dist-bar"><span class="dist-label">'+d.name+'</span>'+
+      '<div class="dist-track"><div class="dist-fill" style="width:0;background:'+d.color+'" data-w="'+d.pct+'%"></div></div>'+
+      '<span class="dist-pct">'+d.pct+'%</span></div>';
+  });
+  $('#dist-bars').innerHTML=barsHtml;
+  setTimeout(()=>{$$('.dist-fill').forEach(el=>{el.style.width=el.dataset.w})},100);
+
+  let rankData=[
+    {emoji:'&#128081;',name:'BOSS 领导者',count:'3,847'},
+    {emoji:'&#128055;',name:'MALO 吗喽',count:'3,291'},
+    {emoji:'&#129313;',name:'JOKER 小丑',count:'2,904'},
+    {emoji:'&#128054;',name:'PUPPY 修勾',count:'2,583'},
+    {emoji:'&#128049;',name:'CAT 猫主子',count:'2,156'},
+    {emoji:'&#129495;',name:'MONK 僧人',count:'1,983'},
+    {emoji:'&#128139;',name:'SEXY 尤物',count:'1,756'},
+    {emoji:'&#127941;',name:'HERO 英雄',count:'1,532'},
+    {emoji:'&#128218;',name:'NERD 学神',count:'1,287'},
+    {emoji:'&#127912;',name:'ART 艺术家',count:'1,094'}
+  ];
+  let rankHtml='';
+  rankData.forEach((d,i)=>{
+    rankHtml+='<div class="rank-item"><span class="rank-num '+(i<3?'top':'normal')+'">'+(i+1)+'</span>'+
+      '<span class="rank-emoji">'+d.emoji+'</span><span class="rank-name">'+d.name+'</span>'+
+      '<span class="rank-count">'+d.count+'人</span></div>';
+  });
+  $('#rank-list').innerHTML=rankHtml;
+
+  let feedMsgs=['刚刚测出了 BOSS 领导者！','又一个小丑诞生了','吗喽的命也是命...',
+    '装死者上线了，已读不回','我是 HERO 英雄！','酒鬼出没注意','测出了 SEXY 尤物，太准了',
+    '第三次测还是 OHNO 哦不人','修勾汪汪汪！','GOGO 行者说走就走','猫主子已上线',
+    '学神在此，退散','恋爱脑又来了','天使降临人间','恶魔在人间溜达',
+    '狐狸的智慧你不懂','厨神出锅了！','赛博人404','幽灵飘过...','有人测出了神！'];
+  let feedHtml='';
+  feedMsgs.forEach((msg,i)=>{
+    let dur=rand(8,15);
+    let delay=rand(0,8);
+    let top=rand(10,130);
+    feedHtml+='<div class="feed-item" style="animation-duration:'+dur+'s;animation-delay:'+delay+'s;top:'+top+'px">'+msg+'</div>';
+  });
+  $('#feed-list').innerHTML=feedHtml;
+}
+
+// ==================== DAILY ====================
+function renderDaily(){
+  let dayIdx=new Date().getDate()%DAILY_QUESTIONS.length;
+  let dq=DAILY_QUESTIONS[dayIdx];
+  let container=$('#daily-content');
+
+  if(state.dailyAnswered){
+    let saved=JSON.parse(localStorage.getItem('sbti_daily_'+dayIdx)||'null');
+    if(saved!==null){
+      container.innerHTML='<div class="daily-badge">每日一题</div>'+
+        '<div class="daily-result show"><div class="daily-result-emoji">&#127881;</div>'+
+        '<div class="daily-result-text">'+dq.results[saved]+'</div>'+
+        '<div class="daily-result-desc">'+dq.descs[saved]+'</div>'+
+        '<button class="btn-result btn-primary" onclick="navigate(\'home\')">返回首页</button>'+
+        '<p class="daily-teaser">明天再来解锁新题目</p></div>';
+      return;
+    }
+  }
+
+  container.innerHTML='<div class="daily-badge">每日一题</div>'+
+    '<div class="daily-question">'+dq.q+'</div>'+
+    '<div class="options" id="daily-options"></div>';
+
+  let labels=['A','B','C'];
+  let optsContainer=$('#daily-options');
+  dq.opts.forEach((opt,i)=>{
+    let div=document.createElement('div');
+    div.className='option-card';
+    div.innerHTML='<span class="option-label">'+labels[i]+'</span><span class="option-text">'+opt+'</span>';
+    div.addEventListener('click',()=>{
+      $$('#daily-options .option-card').forEach(c=>c.classList.remove('selected'));
+      div.classList.add('selected');
+      setTimeout(()=>{
+        state.dailyAnswered=true;
+        localStorage.setItem('sbti_daily_'+dayIdx,i);
+        renderDaily();
+      },400);
+    });
+    optsContainer.appendChild(div);
+  });
+}
+
+// ==================== INIT ====================
+function checkResult(){
+  if(state.result){
+    $('#has-result').style.display='block';
+    $('#has-result').textContent='你上次测出了 '+state.result.code+' '+state.result.name+'，点击查看';
+    $('#has-result').onclick=()=>showResult();
+  }else{
+    $('#has-result').style.display='none';
+  }
+}
+
+function init(){
+  load();
+  initBg();
+
+  // Random test count
+  $('#test-count').textContent=(rand(10000,99999)).toLocaleString();
+
+  // Button events
+  $('#btn-start').addEventListener('click',function(e){
+    let ripple=document.createElement('span');ripple.className='ripple';
+    let rect=this.getBoundingClientRect();
+    ripple.style.width=ripple.style.height='20px';
+    ripple.style.left=(e.clientX-rect.left-10)+'px';
+    ripple.style.top=(e.clientY-rect.top-10)+'px';
+    this.appendChild(ripple);
+    setTimeout(()=>ripple.remove(),600);
+    startQuiz();
+  });
+
+  $('#btn-daily').addEventListener('click',()=>navigate('daily'));
+  $('#btn-share').addEventListener('click',()=>navigate('share'));
+  $('#btn-square').addEventListener('click',()=>navigate('square'));
+  $('#btn-retry').addEventListener('click',()=>{state.result=null;state.scores=null;localStorage.removeItem('sbti_state');startQuiz()});
+  $('#btn-save').addEventListener('click',()=>{
+    let c=$('#poster-canvas');
+    let link=document.createElement('a');
+    link.download='SBTI-'+state.result.code+'-'+state.result.name+'.png';
+    link.href=c.toDataURL('image/png');
+    link.click();
+  });
+  $('#btn-back-result').addEventListener('click',()=>navigate('result'));
+  $('#btn-invite').addEventListener('click',()=>{
+    if(navigator.share){
+      navigator.share({title:'SBTI人格测试',text:'我测出了'+state.result?.code+' '+state.result?.name+'！你也来测测吧',url:location.href}).catch(()=>{});
+    }else{
+      navigate('home');
+    }
+  });
+
+  // Hash routing
+  let hash=location.hash.replace('#','');
+  if(hash&&$('#page-'+hash)){navigate(hash)}
+  else{checkResult()}
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
