@@ -884,7 +884,7 @@ function generatePoster(){
 
   // QR Code - generate REAL scannable QR code using qrcode-generator library
   let qrSize=120,qrX=w/2-qrSize/2,qrY=1060;
-  let urlStr=location.href||'https://lewis-liu-king.github.io/sbti-l/';
+  let urlStr='https://lewis-liu-king.github.io/sbti-l/';
   // Create QR code (type 0 = auto, error correction level L)
   let qr=qrcode(0,'L');
   qr.addData(urlStr);
